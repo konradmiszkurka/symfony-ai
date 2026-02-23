@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:latest-php8.4 AS base
+FROM dunglas/frankenphp:latest AS base
 
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
