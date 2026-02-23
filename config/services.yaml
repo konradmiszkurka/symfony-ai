@@ -23,6 +23,7 @@ services:
     App\Match\Domain\Repository\LeagueRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineLeagueRepository'
     App\Match\Domain\Repository\TeamRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineTeamRepository'
     App\Match\Domain\Repository\MatchRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineMatchRepository'
+    App\User\Domain\Repository\UserRepositoryInterface: '@App\User\Infrastructure\Persistence\DoctrineUserRepository'
 
     # API Client wiring
     App\Match\Infrastructure\Api\FootballDataApiClient:

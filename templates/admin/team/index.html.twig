@@ -13,7 +13,7 @@
 
     <div class="card table-card shadow-sm">
         <div class="card-body p-0">
-            <table class="table table-hover">
+            <table class="table table-hover table-striped">
                 <thead>
                     <tr>
                         <th style="width:40px;"></th>
@@ -28,7 +28,7 @@
                         <tr>
                             <td>
                                 {% if team.crest %}
-                                    <img src="{{ team.crest }}" alt="" style="width:24px;height:24px;" loading="lazy">
+                                    <img src="{{ team.crest }}" alt="" style="width:30px;height:30px;" loading="lazy">
                                 {% endif %}
                             </td>
                             <td class="fw-medium">{{ team.name }}</td>

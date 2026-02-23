@@ -1,7 +1,7 @@
 <turbo-frame id="match-list">
     <div class="card table-card shadow-sm">
         <div class="card-body p-0">
-            <table class="table table-hover">
+            <table class="table table-hover table-striped">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -20,7 +20,10 @@
                             <td class="text-muted">{{ match.startDate|date('d M Y, H:i') }}</td>
                             <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ match.league.code }}</span></td>
                             <td>{{ match.matchday ?? '-' }}</td>
-                            <td class="fw-medium">{{ match.homeTeam.name }}</td>
+                            <td class="fw-medium">
+                                {% if match.homeTeam.crest %}<img src="{{ match.homeTeam.crest }}" alt="" style="width:24px;height:24px;" loading="lazy" class="me-1">{% endif %}
+                                {{ match.homeTeam.name }}
+                            </td>
                             <td class="text-center score-display">
                                 {% if match.homeScore is not null %}
                                     {{ match.homeScore }} &ndash; {{ match.awayScore }}
@@ -28,7 +31,10 @@
                                     <span class="text-muted">&mdash;</span>
                                 {% endif %}
                             </td>
-                            <td class="fw-medium">{{ match.awayTeam.name }}</td>
+                            <td class="fw-medium">
+                                {% if match.awayTeam.crest %}<img src="{{ match.awayTeam.crest }}" alt="" style="width:24px;height:24px;" loading="lazy" class="me-1">{% endif %}
+                                {{ match.awayTeam.name }}
+                            </td>
                             <td><span class="badge badge-status badge-{{ match.status.value }}">{{ match.status.value|replace({'_': ' '})|capitalize }}</span></td>
                             <td class="text-end">
                                 <a href="{{ path('admin_match_show', {id: match.id}) }}" class="btn btn-sm btn-outline-primary" data-turbo-frame="_top">
