@@ -163,8 +163,9 @@ final class FootballMatch extends AggregateRoot
 
     public function updateScore(int $homeScore, int $awayScore): void
     {
-        $this->homeScore = $homeScore;
-        $this->awayScore = $awayScore;
+        $score = new Score($homeScore, $awayScore);
+        $this->homeScore = $score->home;
+        $this->awayScore = $score->away;
     }
 
     public function updateStatus(MatchStatus $status): void
@@ -174,9 +175,10 @@ final class FootballMatch extends AggregateRoot
 
     public function finish(int $homeScore, int $awayScore): void
     {
+        $score = new Score($homeScore, $awayScore);
         $this->status = MatchStatus::Finished;
-        $this->homeScore = $homeScore;
-        $this->awayScore = $awayScore;
+        $this->homeScore = $score->home;
+        $this->awayScore = $score->away;
     }
 
     public function cancel(): void

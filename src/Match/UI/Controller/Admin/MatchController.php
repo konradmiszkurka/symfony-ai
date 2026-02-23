@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Match\UI\Controller\Admin;
 
 use App\Match\Application\Facade\MatchFacade;
+use App\Match\Domain\ValueObject\MatchStatus;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,22 +14,52 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/matches', name: 'admin_match_')]
 final class MatchController extends AbstractController
 {
+    public function __construct(
+        private readonly MatchFacade $facade,
+    ) {
+    }
+
     #[Route('', name: 'index')]
-    public function index(Request $request, MatchFacade $facade): Response
+    public function index(Request $request): Response
     {
         $leagueId = $request->query->get('league');
-        $status = $request->query->get('status');
+        $statusRaw = $request->query->get('status');
         $dateFrom = $request->query->get('date_from');
         $dateTo = $request->query->get('date_to');
 
-        $matches = $facade->getMatchesByFilters(
+        $status = null;
+        if (null !== $statusRaw && '' !== $statusRaw) {
+            $status = MatchStatus::tryFrom($statusRaw);
+        }
+
+        $validDateFrom = null;
+        if (null !== $dateFrom && '' !== $dateFrom) {
+            try {
+                new \DateTimeImmutable($dateFrom);
+                $validDateFrom = $dateFrom;
+            } catch (\DateMalformedStringException) {
+                // ignore invalid date
+            }
+        }
+
+        $validDateTo = null;
+        if (null !== $dateTo && '' !== $dateTo) {
+            try {
+                new \DateTimeImmutable($dateTo);
+                $validDateTo = $dateTo;
+            } catch (\DateMalformedStringException) {
+                // ignore invalid date
+            }
+        }
+
+        $matches = $this->facade->getMatchesByFilters(
             leagueId: $leagueId ?: null,
-            status: $status ?: null,
-            dateFrom: $dateFrom ?: null,
-            dateTo: $dateTo ?: null,
+            status: $status?->value,
+            dateFrom: $validDateFrom,
+            dateTo: $validDateTo,
         );
 
-        $leagues = $facade->getAllLeagues();
+        $leagues = $this->facade->getAllLeagues();
 
         if ($request->headers->has('Turbo-Frame')) {
             return $this->render('admin/match/_list.html.twig', [
@@ -40,16 +71,16 @@ final class MatchController extends AbstractController
             'matches' => $matches,
             'leagues' => $leagues,
             'selectedLeague' => $leagueId,
-            'selectedStatus' => $status,
+            'selectedStatus' => $statusRaw,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
         ]);
     }
 
     #[Route('/{id}', name: 'show')]
-    public function show(string $id, MatchFacade $facade): Response
+    public function show(string $id): Response
     {
-        $match = $facade->getMatch($id);
+        $match = $this->facade->getMatch($id);
 
         if (null === $match) {
             throw $this->createNotFoundException('Match not found.');

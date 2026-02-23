@@ -20,6 +20,11 @@ final class ImportController extends AbstractController
         'SA' => 'Serie A',
     ];
 
+    public function __construct(
+        private readonly MatchFacade $facade,
+    ) {
+    }
+
     #[Route('', name: 'index')]
     public function index(): Response
     {
@@ -29,8 +34,12 @@ final class ImportController extends AbstractController
     }
 
     #[Route('/run', name: 'run', methods: ['POST'])]
-    public function run(Request $request, MatchFacade $facade): Response
+    public function run(Request $request): Response
     {
+        if (!$this->isCsrfTokenValid('import', $request->request->getString('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
         $selected = $request->request->all('competitions');
 
         if (empty($selected)) {
@@ -47,7 +56,7 @@ final class ImportController extends AbstractController
             }
 
             try {
-                $result = $facade->importCompetition($code);
+                $result = $this->facade->importCompetition($code);
                 $results[] = \sprintf(
                     '%s: %d teams, %d matches imported, %d updated',
                     $code,
