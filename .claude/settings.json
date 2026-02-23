@@ -1,0 +1,19 @@
+{
+    "permissions": {
+        "allowedTools": [
+            "Read",
+            "Write",
+            "Edit",
+            "Bash(git *)",
+            "Bash(make *)",
+            "Bash(php *)",
+            "Bash(composer *)"
+        ],
+        "deny": [
+            "Read(./.env.local)",
+            "Read(./.env.*.local)",
+            "Write(./.env.local)",
+            "Write(./.env.*.local)"
+        ]
+    }
+}
