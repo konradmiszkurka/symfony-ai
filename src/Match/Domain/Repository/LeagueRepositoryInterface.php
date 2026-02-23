@@ -11,6 +11,8 @@ interface LeagueRepositoryInterface
 {
     public function save(League $league): void;
 
+    public function remove(League $league): void;
+
     public function findById(LeagueId $id): ?League;
 
     public function findByExternalId(int $externalId): ?League;

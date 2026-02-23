@@ -22,6 +22,12 @@ final readonly class DoctrineTeamRepository implements TeamRepositoryInterface
         $this->entityManager->flush();
     }
 
+    public function remove(Team $team): void
+    {
+        $this->entityManager->remove($team);
+        $this->entityManager->flush();
+    }
+
     public function findById(TeamId $id): ?Team
     {
         return $this->entityManager->find(Team::class, $id->value);

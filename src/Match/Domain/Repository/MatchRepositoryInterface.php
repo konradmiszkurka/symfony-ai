@@ -13,6 +13,8 @@ interface MatchRepositoryInterface
 {
     public function save(FootballMatch $match): void;
 
+    public function remove(FootballMatch $match): void;
+
     public function findById(MatchId $id): ?FootballMatch;
 
     public function findByExternalId(int $externalId): ?FootballMatch;

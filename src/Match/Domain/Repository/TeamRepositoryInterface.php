@@ -11,6 +11,8 @@ interface TeamRepositoryInterface
 {
     public function save(Team $team): void;
 
+    public function remove(Team $team): void;
+
     public function findById(TeamId $id): ?Team;
 
     public function findByExternalId(int $externalId): ?Team;

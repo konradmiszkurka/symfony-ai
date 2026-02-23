@@ -24,6 +24,12 @@ final readonly class DoctrineMatchRepository implements MatchRepositoryInterface
         $this->entityManager->flush();
     }
 
+    public function remove(FootballMatch $match): void
+    {
+        $this->entityManager->remove($match);
+        $this->entityManager->flush();
+    }
+
     public function findById(MatchId $id): ?FootballMatch
     {
         return $this->entityManager->createQueryBuilder()

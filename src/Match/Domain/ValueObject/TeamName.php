@@ -6,12 +6,28 @@ namespace App\Match\Domain\ValueObject;
 
 final readonly class TeamName implements \Stringable
 {
-    public function __construct(
+    private function __construct(
         public string $value,
-    ) {
-        if ('' === trim($value)) {
+    ) {}
+
+    public static function fromString(string $value): self
+    {
+        $trimmed = trim($value);
+
+        if ($trimmed === '') {
             throw new \InvalidArgumentException('Team name cannot be empty.');
         }
+
+        if (mb_strlen($trimmed) > 255) {
+            throw new \InvalidArgumentException('Team name cannot exceed 255 characters.');
+        }
+
+        return new self($trimmed);
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->value;
     }
 
     public function __toString(): string

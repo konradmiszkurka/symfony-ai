@@ -22,6 +22,12 @@ final readonly class DoctrineLeagueRepository implements LeagueRepositoryInterfa
         $this->entityManager->flush();
     }
 
+    public function remove(League $league): void
+    {
+        $this->entityManager->remove($league);
+        $this->entityManager->flush();
+    }
+
     public function findById(LeagueId $id): ?League
     {
         return $this->entityManager->find(League::class, $id->value);
