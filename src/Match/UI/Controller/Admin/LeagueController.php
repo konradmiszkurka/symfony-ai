@@ -12,24 +12,29 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/leagues', name: 'admin_league_')]
 final class LeagueController extends AbstractController
 {
+    public function __construct(
+        private readonly MatchFacade $facade,
+    ) {
+    }
+
     #[Route('', name: 'index')]
-    public function index(MatchFacade $facade): Response
+    public function index(): Response
     {
         return $this->render('admin/league/index.html.twig', [
-            'leagues' => $facade->getAllLeagues(),
+            'leagues' => $this->facade->getAllLeagues(),
         ]);
     }
 
     #[Route('/{id}', name: 'show')]
-    public function show(string $id, MatchFacade $facade): Response
+    public function show(string $id): Response
     {
-        $league = $facade->getLeague($id);
+        $league = $this->facade->getLeague($id);
 
         if (null === $league) {
             throw $this->createNotFoundException('League not found.');
         }
 
-        $matches = $facade->getMatchesByFilters(leagueId: $id);
+        $matches = $this->facade->getMatchesByFilters(leagueId: $id);
 
         return $this->render('admin/league/show.html.twig', [
             'league' => $league,

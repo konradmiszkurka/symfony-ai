@@ -12,6 +12,7 @@
     <div class="card shadow-sm border-0 mb-4" style="border-radius:.75rem;">
         <div class="card-body">
             <form method="post" action="{{ path('admin_import_run') }}" data-controller="import">
+                <input type="hidden" name="_token" value="{{ csrf_token('import') }}">
                 <h6 class="fw-bold mb-3">Select Competitions</h6>
                 {% for code, name in competitions %}
                     <div class="form-check mb-2">

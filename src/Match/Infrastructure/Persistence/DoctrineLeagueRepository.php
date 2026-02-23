@@ -30,7 +30,13 @@ final readonly class DoctrineLeagueRepository implements LeagueRepositoryInterfa
 
     public function findById(LeagueId $id): ?League
     {
-        return $this->entityManager->find(League::class, $id->value);
+        return $this->entityManager->createQueryBuilder()
+            ->select('l')
+            ->from(League::class, 'l')
+            ->where('l.id = :id')
+            ->setParameter('id', $id->value)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findByExternalId(int $externalId): ?League

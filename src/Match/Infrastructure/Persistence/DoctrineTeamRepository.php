@@ -30,7 +30,13 @@ final readonly class DoctrineTeamRepository implements TeamRepositoryInterface
 
     public function findById(TeamId $id): ?Team
     {
-        return $this->entityManager->find(Team::class, $id->value);
+        return $this->entityManager->createQueryBuilder()
+            ->select('t')
+            ->from(Team::class, 't')
+            ->where('t.id = :id')
+            ->setParameter('id', $id->value)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findByExternalId(int $externalId): ?Team

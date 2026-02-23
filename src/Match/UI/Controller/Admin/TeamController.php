@@ -12,18 +12,23 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/teams', name: 'admin_team_')]
 final class TeamController extends AbstractController
 {
+    public function __construct(
+        private readonly MatchFacade $facade,
+    ) {
+    }
+
     #[Route('', name: 'index')]
-    public function index(MatchFacade $facade): Response
+    public function index(): Response
     {
         return $this->render('admin/team/index.html.twig', [
-            'teams' => $facade->getAllTeams(),
+            'teams' => $this->facade->getAllTeams(),
         ]);
     }
 
     #[Route('/{id}', name: 'show')]
-    public function show(string $id, MatchFacade $facade): Response
+    public function show(string $id): Response
     {
-        $team = $facade->getTeam($id);
+        $team = $this->facade->getTeam($id);
 
         if (null === $team) {
             throw $this->createNotFoundException('Team not found.');
