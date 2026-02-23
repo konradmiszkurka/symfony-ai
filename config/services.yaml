@@ -19,5 +19,18 @@ services:
     App\:
         resource: '../src/'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # Repository bindings
+    App\Match\Domain\Repository\TeamRepositoryInterface:
+        alias: App\Match\Infrastructure\Persistence\DoctrineTeamRepository
+
+    App\Match\Domain\Repository\LeagueRepositoryInterface:
+        alias: App\Match\Infrastructure\Persistence\DoctrineLeagueRepository
+
+    App\Match\Domain\Repository\MatchRepositoryInterface:
+        alias: App\Match\Infrastructure\Persistence\DoctrineMatchRepository
+
+    # Facade wiring
+    App\Match\Application\Facade\MatchFacade:
+        arguments:
+            $commandBus: '@command.bus'
+            $queryBus: '@query.bus'
