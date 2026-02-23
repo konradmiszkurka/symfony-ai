@@ -1,0 +1,15 @@
+.git
+.github
+.docker
+docker-compose.override.yml
+.env.local
+.env.*.local
+var/
+vendor/
+node_modules/
+.idea/
+.vscode/
+*.md
+!README.md
+Makefile
+.claude/

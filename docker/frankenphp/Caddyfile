@@ -1,0 +1,27 @@
+{
+	{$CADDY_GLOBAL_OPTIONS}
+
+	frankenphp {
+		{$FRANKENPHP_CONFIG}
+	}
+
+	# https://caddyserver.com/docs/caddyfile/directives#order
+	order php_server before file_server
+	order php before file_server
+}
+
+:80 {
+	log {
+		# Redact the authorization query parameter that can be set by Mercure
+		format filter {
+			request>uri query {
+				replace authorization REDACTED
+			}
+		}
+	}
+
+	root * /app/public
+
+	# Handle PHP files with FrankenPHP
+	php_server
+}
