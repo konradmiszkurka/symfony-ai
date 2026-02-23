@@ -8,6 +8,13 @@ framework:
     #esi: true
     #fragments: true
 
+    http_client:
+        scoped_clients:
+            football_data.client:
+                base_uri: 'https://api.football-data.org/v4/'
+                headers:
+                    X-Auth-Token: '%env(FOOTBALL_DATA_API_TOKEN)%'
+
 when@test:
     framework:
         test: true

@@ -19,5 +19,12 @@ services:
     App\:
         resource: '../src/'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # Repository interface bindings
+    App\Match\Domain\Repository\LeagueRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineLeagueRepository'
+    App\Match\Domain\Repository\TeamRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineTeamRepository'
+    App\Match\Domain\Repository\MatchRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineMatchRepository'
+
+    # API Client wiring
+    App\Match\Infrastructure\Api\FootballDataApiClient:
+        arguments:
+            $footballDataClient: '@football_data.client'

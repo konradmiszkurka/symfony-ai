@@ -1,0 +1,64 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}Matches{% endblock %}
+{% block topbar_title %}Matches{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">All Matches</h4>
+            <small class="text-muted">{{ matches|length }} results</small>
+        </div>
+    </div>
+
+    {# Filters #}
+    <div class="card shadow-sm border-0 mb-4" style="border-radius:.75rem;">
+        <div class="card-body">
+            <form method="get" action="{{ path('admin_match_index') }}" data-turbo-frame="match-list">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="league" class="form-label fw-medium" style="font-size:.8125rem;">League</label>
+                        <select name="league" id="league" class="form-select form-select-sm">
+                            <option value="">All leagues</option>
+                            {% for league in leagues %}
+                                <option value="{{ league.id }}" {% if selectedLeague == '' ~ league.id %}selected{% endif %}>
+                                    {{ league.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="status" class="form-label fw-medium" style="font-size:.8125rem;">Status</label>
+                        <select name="status" id="status" class="form-select form-select-sm">
+                            <option value="">All statuses</option>
+                            <option value="scheduled" {% if selectedStatus == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                            <option value="in_progress" {% if selectedStatus == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="finished" {% if selectedStatus == 'finished' %}selected{% endif %}>Finished</option>
+                            <option value="postponed" {% if selectedStatus == 'postponed' %}selected{% endif %}>Postponed</option>
+                            <option value="cancelled" {% if selectedStatus == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_from" class="form-label fw-medium" style="font-size:.8125rem;">Date From</label>
+                        <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" value="{{ dateFrom }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_to" class="form-label fw-medium" style="font-size:.8125rem;">Date To</label>
+                        <input type="date" name="date_to" id="date_to" class="form-control form-control-sm" value="{{ dateTo }}">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-sm btn-primary me-2">
+                            <i class="bi bi-funnel me-1"></i>Filter
+                        </button>
+                        <a href="{{ path('admin_match_index') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Match list in Turbo Frame #}
+    <turbo-frame id="match-list">
+        {% include 'admin/match/_list.html.twig' %}
+    </turbo-frame>
+{% endblock %}

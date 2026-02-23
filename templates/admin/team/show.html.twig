@@ -1,0 +1,33 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}{{ team.name }}{% endblock %}
+{% block topbar_title %}{{ team.name }}{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb" style="font-size:.875rem;">
+            <li class="breadcrumb-item"><a href="{{ path('admin_team_index') }}">Teams</a></li>
+            <li class="breadcrumb-item active">{{ team.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm border-0" style="border-radius:.75rem;">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-4">
+                {% if team.crest %}
+                    <img src="{{ team.crest }}" alt="" style="width:72px;height:72px;" class="me-3" loading="lazy">
+                {% endif %}
+                <div>
+                    <h4 class="fw-bold mb-0">{{ team.name }}</h4>
+                    {% if team.shortName %}
+                        <span class="text-muted">{{ team.shortName }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-3"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">TLA</span><span class="badge bg-secondary bg-opacity-10 text-secondary">{{ team.tla ?? '-' }}</span></div>
+                <div class="col-md-3"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">External ID</span>{{ team.externalId ?? '-' }}</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

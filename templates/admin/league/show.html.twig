@@ -1,0 +1,67 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}{{ league.name }}{% endblock %}
+{% block topbar_title %}{{ league.name }}{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb" style="font-size:.875rem;">
+            <li class="breadcrumb-item"><a href="{{ path('admin_league_index') }}">Leagues</a></li>
+            <li class="breadcrumb-item active">{{ league.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm border-0 mb-4" style="border-radius:.75rem;">
+        <div class="card-body">
+            <h4 class="fw-bold mb-3">{{ league.name }}</h4>
+            <div class="row g-3">
+                <div class="col-md-3"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">Code</span><span class="badge bg-primary bg-opacity-10 text-primary">{{ league.code }}</span></div>
+                <div class="col-md-3"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">Country</span>{{ league.country }}</div>
+                <div class="col-md-3"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">Season</span>{{ league.currentSeason ?? '-' }}</div>
+                <div class="col-md-3"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">External ID</span>{{ league.externalId ?? '-' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card table-card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h6 class="mb-0 fw-bold">Matches ({{ matches|length }})</h6>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>MD</th>
+                        <th>Home</th>
+                        <th class="text-center">Score</th>
+                        <th>Away</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in matches %}
+                        <tr>
+                            <td class="text-muted">{{ match.startDate|date('d M Y, H:i') }}</td>
+                            <td>{{ match.matchday ?? '-' }}</td>
+                            <td class="fw-medium">{{ match.homeTeam.name }}</td>
+                            <td class="text-center score-display">
+                                {% if match.homeScore is not null %}
+                                    {{ match.homeScore }} &ndash; {{ match.awayScore }}
+                                {% else %}
+                                    <span class="text-muted">&mdash;</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-medium">{{ match.awayTeam.name }}</td>
+                            <td><span class="badge badge-status badge-{{ match.status.value }}">{{ match.status.value|replace({'_': ' '})|capitalize }}</span></td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">No matches found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

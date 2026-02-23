@@ -1,0 +1,48 @@
+<turbo-frame id="match-list">
+    <div class="card table-card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>League</th>
+                        <th>MD</th>
+                        <th>Home</th>
+                        <th class="text-center">Score</th>
+                        <th>Away</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in matches %}
+                        <tr>
+                            <td class="text-muted">{{ match.startDate|date('d M Y, H:i') }}</td>
+                            <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ match.league.code }}</span></td>
+                            <td>{{ match.matchday ?? '-' }}</td>
+                            <td class="fw-medium">{{ match.homeTeam.name }}</td>
+                            <td class="text-center score-display">
+                                {% if match.homeScore is not null %}
+                                    {{ match.homeScore }} &ndash; {{ match.awayScore }}
+                                {% else %}
+                                    <span class="text-muted">&mdash;</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-medium">{{ match.awayTeam.name }}</td>
+                            <td><span class="badge badge-status badge-{{ match.status.value }}">{{ match.status.value|replace({'_': ' '})|capitalize }}</span></td>
+                            <td class="text-end">
+                                <a href="{{ path('admin_match_show', {id: match.id}) }}" class="btn btn-sm btn-outline-primary" data-turbo-frame="_top">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">No matches found matching the filters.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</turbo-frame>

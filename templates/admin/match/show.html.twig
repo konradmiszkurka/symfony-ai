@@ -1,0 +1,64 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}{{ match.homeTeam.name }} vs {{ match.awayTeam.name }}{% endblock %}
+{% block topbar_title %}Match Detail{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb" style="font-size:.875rem;">
+            <li class="breadcrumb-item"><a href="{{ path('admin_match_index') }}">Matches</a></li>
+            <li class="breadcrumb-item active">{{ match.homeTeam.name }} vs {{ match.awayTeam.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm border-0" style="border-radius:.75rem;">
+        <div class="card-body py-5">
+            <div class="text-center mb-4">
+                <span class="badge bg-primary bg-opacity-10 text-primary me-1">{{ match.league.name }}</span>
+                {% if match.matchday %}
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary me-1">Matchday {{ match.matchday }}</span>
+                {% endif %}
+                <span class="badge badge-status badge-{{ match.status.value }}">{{ match.status.value|replace({'_': ' '})|capitalize }}</span>
+            </div>
+
+            <div class="row text-center align-items-center">
+                <div class="col-md-4">
+                    {% if match.homeTeam.crest %}
+                        <img src="{{ match.homeTeam.crest }}" alt="" style="width:80px;height:80px;" class="mb-2" loading="lazy"><br>
+                    {% endif %}
+                    <h5 class="fw-bold">{{ match.homeTeam.name }}</h5>
+                    {% if match.homeTeam.tla %}
+                        <span class="text-muted" style="font-size:.875rem;">{{ match.homeTeam.tla }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <div class="display-3 fw-bold score-display">
+                        {% if match.homeScore is not null %}
+                            {{ match.homeScore }} &ndash; {{ match.awayScore }}
+                        {% else %}
+                            &mdash;
+                        {% endif %}
+                    </div>
+                    <div class="text-muted mt-2" style="font-size:.875rem;">{{ match.startDate|date('l, d M Y H:i') }}</div>
+                </div>
+                <div class="col-md-4">
+                    {% if match.awayTeam.crest %}
+                        <img src="{{ match.awayTeam.crest }}" alt="" style="width:80px;height:80px;" class="mb-2" loading="lazy"><br>
+                    {% endif %}
+                    <h5 class="fw-bold">{{ match.awayTeam.name }}</h5>
+                    {% if match.awayTeam.tla %}
+                        <span class="text-muted" style="font-size:.875rem;">{{ match.awayTeam.tla }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row g-3">
+                <div class="col-md-4"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">League</span><a href="{{ path('admin_league_show', {id: match.league.id}) }}">{{ match.league.name }}</a></div>
+                <div class="col-md-4"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">External ID</span>{{ match.externalId ?? '-' }}</div>
+                <div class="col-md-4"><span class="text-muted d-block" style="font-size:.75rem;font-weight:600;text-transform:uppercase;">Matchday</span>{{ match.matchday ?? '-' }}</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
