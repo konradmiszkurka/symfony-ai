@@ -5,106 +5,117 @@ declare(strict_types=1);
 namespace App\Match\Domain\Entity;
 
 use App\Match\Domain\ValueObject\LeagueId;
-use App\Match\Domain\ValueObject\LeagueName;
 use App\Shared\Domain\AggregateRoot;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'league')]
+#[ORM\Table(name: 'leagues')]
 final class League extends AggregateRoot
 {
     #[ORM\Id]
-    #[ORM\Column(type: 'league_id')]
-    private LeagueId $id;
+    #[ORM\Column(type: 'string', length: 36)]
+    private string $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 100, nullable: true)]
-    private ?string $country;
+    #[ORM\Column(type: 'string', length: 10)]
+    private string $code;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private string $country;
 
     #[ORM\Column(type: 'string', length: 20, nullable: true)]
-    private ?string $season;
+    private ?string $currentSeason;
 
-    #[ORM\Column(type: 'string', length: 500, nullable: true)]
-    private ?string $logoUrl;
+    #[ORM\Column(type: 'integer', nullable: true, unique: true)]
+    private ?int $externalId;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    /** @var Collection<int, FootballMatch> */
+    #[ORM\OneToMany(targetEntity: FootballMatch::class, mappedBy: 'league')]
+    private Collection $matches;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $updatedAt;
-
-    private function __construct() {}
+    private function __construct(
+        LeagueId $id,
+        string $name,
+        string $code,
+        string $country,
+        ?string $currentSeason = null,
+        ?int $externalId = null,
+    ) {
+        $this->id = $id->value;
+        $this->name = $name;
+        $this->code = $code;
+        $this->country = $country;
+        $this->currentSeason = $currentSeason;
+        $this->externalId = $externalId;
+        $this->matches = new ArrayCollection();
+    }
 
     public static function create(
-        LeagueId $id,
-        LeagueName $name,
-        ?string $country = null,
-        ?string $season = null,
-        ?string $logoUrl = null,
+        string $name,
+        string $code,
+        string $country,
+        ?string $currentSeason = null,
+        ?int $externalId = null,
     ): self {
-        $league = new self();
-        $league->id = $id;
-        $league->name = $name->value;
-        $league->country = $country;
-        $league->season = $season;
-        $league->logoUrl = $logoUrl;
-        $league->createdAt = new \DateTimeImmutable();
-        $league->updatedAt = new \DateTimeImmutable();
-
-        return $league;
-    }
-
-    public function rename(LeagueName $name): void
-    {
-        $this->name = $name->value;
-        $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    public function updateDetails(
-        ?string $country = null,
-        ?string $season = null,
-        ?string $logoUrl = null,
-    ): void {
-        $this->country = $country;
-        $this->season = $season;
-        $this->logoUrl = $logoUrl;
-        $this->updatedAt = new \DateTimeImmutable();
+        return new self(
+            LeagueId::generate(),
+            $name,
+            $code,
+            $country,
+            $currentSeason,
+            $externalId,
+        );
     }
 
     public function getId(): LeagueId
     {
-        return $this->id;
+        return LeagueId::fromString($this->id);
     }
 
-    public function getName(): LeagueName
+    public function getName(): string
     {
-        return LeagueName::fromString($this->name);
+        return $this->name;
     }
 
-    public function getCountry(): ?string
+    public function getCode(): string
+    {
+        return $this->code;
+    }
+
+    public function getCountry(): string
     {
         return $this->country;
     }
 
-    public function getSeason(): ?string
+    public function getCurrentSeason(): ?string
     {
-        return $this->season;
+        return $this->currentSeason;
     }
 
-    public function getLogoUrl(): ?string
+    public function getExternalId(): ?int
     {
-        return $this->logoUrl;
+        return $this->externalId;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function setExternalId(int $externalId): void
     {
-        return $this->createdAt;
+        $this->externalId = $externalId;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function updateDetails(string $name, string $country, ?string $currentSeason): void
     {
-        return $this->updatedAt;
+        $this->name = $name;
+        $this->country = $country;
+        $this->currentSeason = $currentSeason;
+    }
+
+    /** @return Collection<int, FootballMatch> */
+    public function getMatches(): Collection
+    {
+        return $this->matches;
     }
 }

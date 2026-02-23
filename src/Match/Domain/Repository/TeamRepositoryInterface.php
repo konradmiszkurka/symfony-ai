@@ -9,18 +9,16 @@ use App\Match\Domain\ValueObject\TeamId;
 
 interface TeamRepositoryInterface
 {
-    public function findById(TeamId $id): ?Team;
-
-    /** @throws \App\Match\Domain\Exception\TeamNotFoundException */
-    public function getById(TeamId $id): Team;
-
     public function save(Team $team): void;
 
     public function remove(Team $team): void;
 
+    public function findById(TeamId $id): ?Team;
+
+    public function findByExternalId(int $externalId): ?Team;
+
     /** @return list<Team> */
     public function findAll(): array;
 
-    /** @return list<Team> */
-    public function findByCountry(string $country): array;
+    public function count(): int;
 }

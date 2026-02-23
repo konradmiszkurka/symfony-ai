@@ -5,82 +5,73 @@ declare(strict_types=1);
 namespace App\Match\Domain\Entity;
 
 use App\Match\Domain\ValueObject\TeamId;
-use App\Match\Domain\ValueObject\TeamName;
 use App\Shared\Domain\AggregateRoot;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'team')]
+#[ORM\Table(name: 'teams')]
 final class Team extends AggregateRoot
 {
     #[ORM\Id]
-    #[ORM\Column(type: 'team_id')]
-    private TeamId $id;
+    #[ORM\Column(type: 'string', length: 36)]
+    private string $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 10, nullable: true)]
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private ?string $shortName;
 
-    #[ORM\Column(type: 'string', length: 100, nullable: true)]
-    private ?string $country;
+    #[ORM\Column(type: 'string', length: 5, nullable: true)]
+    private ?string $tla;
 
     #[ORM\Column(type: 'string', length: 500, nullable: true)]
-    private ?string $logoUrl;
+    private ?string $crest;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: 'integer', nullable: true, unique: true)]
+    private ?int $externalId;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $updatedAt;
-
-    private function __construct() {}
+    private function __construct(
+        TeamId $id,
+        string $name,
+        ?string $shortName = null,
+        ?string $tla = null,
+        ?string $crest = null,
+        ?int $externalId = null,
+    ) {
+        $this->id = $id->value;
+        $this->name = $name;
+        $this->shortName = $shortName;
+        $this->tla = $tla;
+        $this->crest = $crest;
+        $this->externalId = $externalId;
+    }
 
     public static function create(
-        TeamId $id,
-        TeamName $name,
+        string $name,
         ?string $shortName = null,
-        ?string $country = null,
-        ?string $logoUrl = null,
+        ?string $tla = null,
+        ?string $crest = null,
+        ?int $externalId = null,
     ): self {
-        $team = new self();
-        $team->id = $id;
-        $team->name = $name->value;
-        $team->shortName = $shortName;
-        $team->country = $country;
-        $team->logoUrl = $logoUrl;
-        $team->createdAt = new \DateTimeImmutable();
-        $team->updatedAt = new \DateTimeImmutable();
-
-        return $team;
-    }
-
-    public function rename(TeamName $name): void
-    {
-        $this->name = $name->value;
-        $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    public function updateDetails(
-        ?string $shortName = null,
-        ?string $country = null,
-        ?string $logoUrl = null,
-    ): void {
-        $this->shortName = $shortName;
-        $this->country = $country;
-        $this->logoUrl = $logoUrl;
-        $this->updatedAt = new \DateTimeImmutable();
+        return new self(
+            TeamId::generate(),
+            $name,
+            $shortName,
+            $tla,
+            $crest,
+            $externalId,
+        );
     }
 
     public function getId(): TeamId
     {
-        return $this->id;
+        return TeamId::fromString($this->id);
     }
 
-    public function getName(): TeamName
+    public function getName(): string
     {
-        return TeamName::fromString($this->name);
+        return $this->name;
     }
 
     public function getShortName(): ?string
@@ -88,23 +79,31 @@ final class Team extends AggregateRoot
         return $this->shortName;
     }
 
-    public function getCountry(): ?string
+    public function getTla(): ?string
     {
-        return $this->country;
+        return $this->tla;
     }
 
-    public function getLogoUrl(): ?string
+    public function getCrest(): ?string
     {
-        return $this->logoUrl;
+        return $this->crest;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getExternalId(): ?int
     {
-        return $this->createdAt;
+        return $this->externalId;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function setExternalId(int $externalId): void
     {
-        return $this->updatedAt;
+        $this->externalId = $externalId;
+    }
+
+    public function updateDetails(string $name, ?string $shortName, ?string $tla, ?string $crest): void
+    {
+        $this->name = $name;
+        $this->shortName = $shortName;
+        $this->tla = $tla;
+        $this->crest = $crest;
     }
 }

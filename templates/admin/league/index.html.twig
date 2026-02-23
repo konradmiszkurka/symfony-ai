@@ -1,0 +1,48 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}Leagues{% endblock %}
+{% block topbar_title %}Leagues{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">All Leagues</h4>
+            <small class="text-muted">{{ leagues|length }} leagues imported</small>
+        </div>
+    </div>
+
+    <div class="card table-card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Country</th>
+                        <th>Season</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for league in leagues %}
+                        <tr>
+                            <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ league.code }}</span></td>
+                            <td class="fw-medium">{{ league.name }}</td>
+                            <td>{{ league.country }}</td>
+                            <td>{{ league.currentSeason ?? '-' }}</td>
+                            <td class="text-end">
+                                <a href="{{ path('admin_league_show', {id: league.id}) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">No leagues imported yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

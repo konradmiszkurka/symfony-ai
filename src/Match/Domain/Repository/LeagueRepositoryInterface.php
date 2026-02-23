@@ -9,18 +9,18 @@ use App\Match\Domain\ValueObject\LeagueId;
 
 interface LeagueRepositoryInterface
 {
-    public function findById(LeagueId $id): ?League;
-
-    /** @throws \App\Match\Domain\Exception\LeagueNotFoundException */
-    public function getById(LeagueId $id): League;
-
     public function save(League $league): void;
 
     public function remove(League $league): void;
 
+    public function findById(LeagueId $id): ?League;
+
+    public function findByExternalId(int $externalId): ?League;
+
+    public function findByCode(string $code): ?League;
+
     /** @return list<League> */
     public function findAll(): array;
 
-    /** @return list<League> */
-    public function findBySeason(string $season): array;
+    public function count(): int;
 }

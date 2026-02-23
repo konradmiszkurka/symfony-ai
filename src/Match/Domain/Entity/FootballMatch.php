@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 namespace App\Match\Domain\Entity;
 
-use App\Match\Domain\Event\MatchCancelledEvent;
-use App\Match\Domain\Event\MatchCreatedEvent;
-use App\Match\Domain\Event\MatchFinishedEvent;
-use App\Match\Domain\Event\MatchStartedEvent;
-use App\Match\Domain\Event\ScoreUpdatedEvent;
-use App\Match\Domain\Exception\InvalidMatchStatusTransitionException;
-use App\Match\Domain\Exception\InvalidScoreException;
 use App\Match\Domain\ValueObject\MatchId;
 use App\Match\Domain\ValueObject\MatchStatus;
 use App\Match\Domain\ValueObject\Score;
@@ -18,14 +11,16 @@ use App\Shared\Domain\AggregateRoot;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'football_match')]
-#[ORM\Index(columns: ['status'], name: 'idx_match_status')]
-#[ORM\Index(columns: ['scheduled_at'], name: 'idx_match_scheduled_at')]
+#[ORM\Table(name: 'football_matches')]
 final class FootballMatch extends AggregateRoot
 {
     #[ORM\Id]
-    #[ORM\Column(type: 'match_id')]
-    private MatchId $id;
+    #[ORM\Column(type: 'string', length: 36)]
+    private string $id;
+
+    #[ORM\ManyToOne(targetEntity: League::class, inversedBy: 'matches')]
+    #[ORM\JoinColumn(name: 'league_id', referencedColumnName: 'id', nullable: false)]
+    private League $league;
 
     #[ORM\ManyToOne(targetEntity: Team::class)]
     #[ORM\JoinColumn(name: 'home_team_id', referencedColumnName: 'id', nullable: false)]
@@ -35,147 +30,81 @@ final class FootballMatch extends AggregateRoot
     #[ORM\JoinColumn(name: 'away_team_id', referencedColumnName: 'id', nullable: false)]
     private Team $awayTeam;
 
-    #[ORM\ManyToOne(targetEntity: League::class)]
-    #[ORM\JoinColumn(name: 'league_id', referencedColumnName: 'id', nullable: false)]
-    private League $league;
-
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $scheduledAt;
+    private \DateTimeImmutable $startDate;
 
     #[ORM\Column(type: 'string', length: 20, enumType: MatchStatus::class)]
     private MatchStatus $status;
 
-    #[ORM\Column(type: 'smallint', nullable: true)]
-    private ?int $homeGoals = null;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $homeScore;
 
-    #[ORM\Column(type: 'smallint', nullable: true)]
-    private ?int $awayGoals = null;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $awayScore;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $matchday;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $updatedAt;
+    #[ORM\Column(type: 'integer', nullable: true, unique: true)]
+    private ?int $externalId;
 
-    private function __construct() {}
-
-    public static function schedule(
+    private function __construct(
         MatchId $id,
+        League $league,
         Team $homeTeam,
         Team $awayTeam,
+        \DateTimeImmutable $startDate,
+        MatchStatus $status,
+        ?int $homeScore,
+        ?int $awayScore,
+        ?int $matchday,
+        ?int $externalId,
+    ) {
+        $this->id = $id->value;
+        $this->league = $league;
+        $this->homeTeam = $homeTeam;
+        $this->awayTeam = $awayTeam;
+        $this->startDate = $startDate;
+        $this->status = $status;
+        $this->homeScore = $homeScore;
+        $this->awayScore = $awayScore;
+        $this->matchday = $matchday;
+        $this->externalId = $externalId;
+    }
+
+    public static function create(
         League $league,
-        \DateTimeImmutable $scheduledAt,
+        Team $homeTeam,
+        Team $awayTeam,
+        \DateTimeImmutable $startDate,
+        MatchStatus $status = MatchStatus::Scheduled,
+        ?int $homeScore = null,
+        ?int $awayScore = null,
+        ?int $matchday = null,
+        ?int $externalId = null,
     ): self {
-        if ($homeTeam->getId()->equals($awayTeam->getId())) {
-            throw new \InvalidArgumentException('Home team and away team must be different.');
-        }
-
-        $match = new self();
-        $match->id = $id;
-        $match->homeTeam = $homeTeam;
-        $match->awayTeam = $awayTeam;
-        $match->league = $league;
-        $match->scheduledAt = $scheduledAt;
-        $match->status = MatchStatus::Scheduled;
-        $match->createdAt = new \DateTimeImmutable();
-        $match->updatedAt = new \DateTimeImmutable();
-
-        $match->recordEvent(new MatchCreatedEvent(
-            matchId: $match->id->value,
-            homeTeamId: $homeTeam->getId()->value,
-            awayTeamId: $awayTeam->getId()->value,
-            leagueId: $league->getId()->value,
-            scheduledAt: $scheduledAt->format(\DateTimeInterface::ATOM),
-        ));
-
-        return $match;
-    }
-
-    public function start(): void
-    {
-        $this->transitionTo(MatchStatus::InProgress);
-        $this->homeGoals = 0;
-        $this->awayGoals = 0;
-        $this->updatedAt = new \DateTimeImmutable();
-
-        $this->recordEvent(new MatchStartedEvent(
-            matchId: $this->id->value,
-            startedAt: $this->updatedAt->format(\DateTimeInterface::ATOM),
-        ));
-    }
-
-    public function updateScore(Score $score): void
-    {
-        if ($this->status !== MatchStatus::InProgress) {
-            throw InvalidScoreException::matchNotInProgress($this->id);
-        }
-
-        $previousHomeGoals = $this->homeGoals;
-        $previousAwayGoals = $this->awayGoals;
-
-        $this->homeGoals = $score->homeGoals;
-        $this->awayGoals = $score->awayGoals;
-        $this->updatedAt = new \DateTimeImmutable();
-
-        $this->recordEvent(new ScoreUpdatedEvent(
-            matchId: $this->id->value,
-            homeGoals: $score->homeGoals,
-            awayGoals: $score->awayGoals,
-            previousHomeGoals: $previousHomeGoals ?? 0,
-            previousAwayGoals: $previousAwayGoals ?? 0,
-        ));
-    }
-
-    public function finish(Score $score): void
-    {
-        $this->transitionTo(MatchStatus::Finished);
-        $this->homeGoals = $score->homeGoals;
-        $this->awayGoals = $score->awayGoals;
-        $this->updatedAt = new \DateTimeImmutable();
-
-        $this->recordEvent(new MatchFinishedEvent(
-            matchId: $this->id->value,
-            homeGoals: $score->homeGoals,
-            awayGoals: $score->awayGoals,
-        ));
-    }
-
-    public function cancel(): void
-    {
-        $this->transitionTo(MatchStatus::Cancelled);
-        $this->updatedAt = new \DateTimeImmutable();
-
-        $this->recordEvent(new MatchCancelledEvent(
-            matchId: $this->id->value,
-            cancelledAt: $this->updatedAt->format(\DateTimeInterface::ATOM),
-        ));
-    }
-
-    public function postpone(): void
-    {
-        $this->transitionTo(MatchStatus::Postponed);
-        $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    public function reschedule(\DateTimeImmutable $scheduledAt): void
-    {
-        $this->transitionTo(MatchStatus::Scheduled);
-        $this->scheduledAt = $scheduledAt;
-        $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    public function getScore(): ?Score
-    {
-        if ($this->homeGoals === null || $this->awayGoals === null) {
-            return null;
-        }
-
-        return Score::create($this->homeGoals, $this->awayGoals);
+        return new self(
+            MatchId::generate(),
+            $league,
+            $homeTeam,
+            $awayTeam,
+            $startDate,
+            $status,
+            $homeScore,
+            $awayScore,
+            $matchday,
+            $externalId,
+        );
     }
 
     public function getId(): MatchId
     {
-        return $this->id;
+        return MatchId::fromString($this->id);
+    }
+
+    public function getLeague(): League
+    {
+        return $this->league;
     }
 
     public function getHomeTeam(): Team
@@ -188,14 +117,9 @@ final class FootballMatch extends AggregateRoot
         return $this->awayTeam;
     }
 
-    public function getLeague(): League
+    public function getStartDate(): \DateTimeImmutable
     {
-        return $this->league;
-    }
-
-    public function getScheduledAt(): \DateTimeImmutable
-    {
-        return $this->scheduledAt;
+        return $this->startDate;
     }
 
     public function getStatus(): MatchStatus
@@ -203,22 +127,65 @@ final class FootballMatch extends AggregateRoot
         return $this->status;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getScore(): ?Score
     {
-        return $this->createdAt;
-    }
-
-    public function getUpdatedAt(): \DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    private function transitionTo(MatchStatus $newStatus): void
-    {
-        if (!$this->status->canTransitionTo($newStatus)) {
-            throw InvalidMatchStatusTransitionException::create($this->status, $newStatus);
+        if (null === $this->homeScore || null === $this->awayScore) {
+            return null;
         }
 
-        $this->status = $newStatus;
+        return new Score($this->homeScore, $this->awayScore);
+    }
+
+    public function getHomeScore(): ?int
+    {
+        return $this->homeScore;
+    }
+
+    public function getAwayScore(): ?int
+    {
+        return $this->awayScore;
+    }
+
+    public function getMatchday(): ?int
+    {
+        return $this->matchday;
+    }
+
+    public function getExternalId(): ?int
+    {
+        return $this->externalId;
+    }
+
+    public function setExternalId(int $externalId): void
+    {
+        $this->externalId = $externalId;
+    }
+
+    public function updateScore(int $homeScore, int $awayScore): void
+    {
+        $this->homeScore = $homeScore;
+        $this->awayScore = $awayScore;
+    }
+
+    public function updateStatus(MatchStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    public function finish(int $homeScore, int $awayScore): void
+    {
+        $this->status = MatchStatus::Finished;
+        $this->homeScore = $homeScore;
+        $this->awayScore = $awayScore;
+    }
+
+    public function cancel(): void
+    {
+        $this->status = MatchStatus::Cancelled;
+    }
+
+    public function postpone(): void
+    {
+        $this->status = MatchStatus::Postponed;
     }
 }

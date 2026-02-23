@@ -5,43 +5,17 @@ declare(strict_types=1);
 namespace App\Match\Infrastructure\Persistence;
 
 use App\Match\Domain\Entity\FootballMatch;
-use App\Match\Domain\Exception\MatchNotFoundException;
 use App\Match\Domain\Repository\MatchRepositoryInterface;
 use App\Match\Domain\ValueObject\LeagueId;
 use App\Match\Domain\ValueObject\MatchId;
 use App\Match\Domain\ValueObject\MatchStatus;
-use App\Match\Domain\ValueObject\TeamId;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class DoctrineMatchRepository implements MatchRepositoryInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-    ) {}
-
-    public function findById(MatchId $id): ?FootballMatch
-    {
-        return $this->entityManager->createQueryBuilder()
-            ->select('m', 'ht', 'at', 'l')
-            ->from(FootballMatch::class, 'm')
-            ->join('m.homeTeam', 'ht')
-            ->join('m.awayTeam', 'at')
-            ->join('m.league', 'l')
-            ->where('m.id = :id')
-            ->setParameter('id', $id->value)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
-    public function getById(MatchId $id): FootballMatch
-    {
-        $match = $this->findById($id);
-
-        if ($match === null) {
-            throw MatchNotFoundException::withId($id);
-        }
-
-        return $match;
+    ) {
     }
 
     public function save(FootballMatch $match): void
@@ -56,82 +30,105 @@ final readonly class DoctrineMatchRepository implements MatchRepositoryInterface
         $this->entityManager->flush();
     }
 
-    /** @return list<FootballMatch> */
-    public function findAll(): array
+    public function findById(MatchId $id): ?FootballMatch
     {
         return $this->entityManager->createQueryBuilder()
-            ->select('m', 'ht', 'at', 'l')
+            ->select('m, ht, at, l')
             ->from(FootballMatch::class, 'm')
             ->join('m.homeTeam', 'ht')
             ->join('m.awayTeam', 'at')
             ->join('m.league', 'l')
-            ->orderBy('m.scheduledAt', 'ASC')
+            ->where('m.id = :id')
+            ->setParameter('id', $id->value)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findByExternalId(int $externalId): ?FootballMatch
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->select('m, ht, at, l')
+            ->from(FootballMatch::class, 'm')
+            ->join('m.homeTeam', 'ht')
+            ->join('m.awayTeam', 'at')
+            ->join('m.league', 'l')
+            ->where('m.externalId = :externalId')
+            ->setParameter('externalId', $externalId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /** @return list<FootballMatch> */
+    public function findByFilters(
+        ?LeagueId $leagueId = null,
+        ?MatchStatus $status = null,
+        ?\DateTimeImmutable $dateFrom = null,
+        ?\DateTimeImmutable $dateTo = null,
+    ): array {
+        $qb = $this->entityManager->createQueryBuilder()
+            ->select('m, ht, at, l')
+            ->from(FootballMatch::class, 'm')
+            ->join('m.homeTeam', 'ht')
+            ->join('m.awayTeam', 'at')
+            ->join('m.league', 'l');
+
+        if (null !== $leagueId) {
+            $qb->andWhere('l.id = :leagueId')
+                ->setParameter('leagueId', $leagueId->value);
+        }
+
+        if (null !== $status) {
+            $qb->andWhere('m.status = :status')
+                ->setParameter('status', $status->value);
+        }
+
+        if (null !== $dateFrom) {
+            $qb->andWhere('m.startDate >= :dateFrom')
+                ->setParameter('dateFrom', $dateFrom);
+        }
+
+        if (null !== $dateTo) {
+            $qb->andWhere('m.startDate <= :dateTo')
+                ->setParameter('dateTo', $dateTo);
+        }
+
+        return $qb->orderBy('m.startDate', 'DESC')
             ->getQuery()
             ->getResult();
     }
 
     /** @return list<FootballMatch> */
-    public function findByLeague(LeagueId $leagueId): array
+    public function findLatest(int $limit = 5): array
     {
         return $this->entityManager->createQueryBuilder()
-            ->select('m', 'ht', 'at', 'l')
+            ->select('m, ht, at, l')
             ->from(FootballMatch::class, 'm')
             ->join('m.homeTeam', 'ht')
             ->join('m.awayTeam', 'at')
             ->join('m.league', 'l')
-            ->where('m.league = :leagueId')
-            ->setParameter('leagueId', $leagueId->value)
-            ->orderBy('m.scheduledAt', 'ASC')
+            ->orderBy('m.startDate', 'DESC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
 
-    /** @return list<FootballMatch> */
-    public function findByTeam(TeamId $teamId): array
+    public function count(): int
     {
-        return $this->entityManager->createQueryBuilder()
-            ->select('m', 'ht', 'at', 'l')
+        return (int) $this->entityManager->createQueryBuilder()
+            ->select('COUNT(m.id)')
             ->from(FootballMatch::class, 'm')
-            ->join('m.homeTeam', 'ht')
-            ->join('m.awayTeam', 'at')
-            ->join('m.league', 'l')
-            ->where('m.homeTeam = :teamId OR m.awayTeam = :teamId')
-            ->setParameter('teamId', $teamId->value)
-            ->orderBy('m.scheduledAt', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getSingleScalarResult();
     }
 
-    /** @return list<FootballMatch> */
-    public function findByStatus(MatchStatus $status): array
+    public function countByStatus(MatchStatus $status): int
     {
-        return $this->entityManager->createQueryBuilder()
-            ->select('m', 'ht', 'at', 'l')
+        return (int) $this->entityManager->createQueryBuilder()
+            ->select('COUNT(m.id)')
             ->from(FootballMatch::class, 'm')
-            ->join('m.homeTeam', 'ht')
-            ->join('m.awayTeam', 'at')
-            ->join('m.league', 'l')
             ->where('m.status = :status')
-            ->setParameter('status', $status)
-            ->orderBy('m.scheduledAt', 'ASC')
+            ->setParameter('status', $status->value)
             ->getQuery()
-            ->getResult();
-    }
-
-    /** @return list<FootballMatch> */
-    public function findByDateRange(\DateTimeImmutable $from, \DateTimeImmutable $to): array
-    {
-        return $this->entityManager->createQueryBuilder()
-            ->select('m', 'ht', 'at', 'l')
-            ->from(FootballMatch::class, 'm')
-            ->join('m.homeTeam', 'ht')
-            ->join('m.awayTeam', 'at')
-            ->join('m.league', 'l')
-            ->where('m.scheduledAt BETWEEN :from AND :to')
-            ->setParameter('from', $from)
-            ->setParameter('to', $to)
-            ->orderBy('m.scheduledAt', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->getSingleScalarResult();
     }
 }

@@ -8,31 +8,31 @@ use App\Match\Domain\Entity\FootballMatch;
 use App\Match\Domain\ValueObject\LeagueId;
 use App\Match\Domain\ValueObject\MatchId;
 use App\Match\Domain\ValueObject\MatchStatus;
-use App\Match\Domain\ValueObject\TeamId;
 
 interface MatchRepositoryInterface
 {
-    public function findById(MatchId $id): ?FootballMatch;
-
-    /** @throws \App\Match\Domain\Exception\MatchNotFoundException */
-    public function getById(MatchId $id): FootballMatch;
-
     public function save(FootballMatch $match): void;
 
     public function remove(FootballMatch $match): void;
 
-    /** @return list<FootballMatch> */
-    public function findAll(): array;
+    public function findById(MatchId $id): ?FootballMatch;
+
+    public function findByExternalId(int $externalId): ?FootballMatch;
+
+    /**
+     * @return list<FootballMatch>
+     */
+    public function findByFilters(
+        ?LeagueId $leagueId = null,
+        ?MatchStatus $status = null,
+        ?\DateTimeImmutable $dateFrom = null,
+        ?\DateTimeImmutable $dateTo = null,
+    ): array;
 
     /** @return list<FootballMatch> */
-    public function findByLeague(LeagueId $leagueId): array;
+    public function findLatest(int $limit = 5): array;
 
-    /** @return list<FootballMatch> */
-    public function findByTeam(TeamId $teamId): array;
+    public function count(): int;
 
-    /** @return list<FootballMatch> */
-    public function findByStatus(MatchStatus $status): array;
-
-    /** @return list<FootballMatch> */
-    public function findByDateRange(\DateTimeImmutable $from, \DateTimeImmutable $to): array;
+    public function countByStatus(MatchStatus $status): int;
 }

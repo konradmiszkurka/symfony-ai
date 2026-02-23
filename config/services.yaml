@@ -19,18 +19,12 @@ services:
     App\:
         resource: '../src/'
 
-    # Repository bindings
-    App\Match\Domain\Repository\TeamRepositoryInterface:
-        alias: App\Match\Infrastructure\Persistence\DoctrineTeamRepository
+    # Repository interface bindings
+    App\Match\Domain\Repository\LeagueRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineLeagueRepository'
+    App\Match\Domain\Repository\TeamRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineTeamRepository'
+    App\Match\Domain\Repository\MatchRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineMatchRepository'
 
-    App\Match\Domain\Repository\LeagueRepositoryInterface:
-        alias: App\Match\Infrastructure\Persistence\DoctrineLeagueRepository
-
-    App\Match\Domain\Repository\MatchRepositoryInterface:
-        alias: App\Match\Infrastructure\Persistence\DoctrineMatchRepository
-
-    # Facade wiring
-    App\Match\Application\Facade\MatchFacade:
+    # API Client wiring
+    App\Match\Infrastructure\Api\FootballDataApiClient:
         arguments:
-            $commandBus: '@command.bus'
-            $queryBus: '@query.bus'
+            $footballDataClient: '@football_data.client'

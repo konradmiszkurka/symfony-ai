@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Match\Infrastructure\Persistence;
 
 use App\Match\Domain\Entity\Team;
-use App\Match\Domain\Exception\TeamNotFoundException;
 use App\Match\Domain\Repository\TeamRepositoryInterface;
 use App\Match\Domain\ValueObject\TeamId;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,22 +13,7 @@ final readonly class DoctrineTeamRepository implements TeamRepositoryInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-    ) {}
-
-    public function findById(TeamId $id): ?Team
-    {
-        return $this->entityManager->find(Team::class, $id->value);
-    }
-
-    public function getById(TeamId $id): Team
-    {
-        $team = $this->findById($id);
-
-        if ($team === null) {
-            throw TeamNotFoundException::withId($id);
-        }
-
-        return $team;
+    ) {
     }
 
     public function save(Team $team): void
@@ -44,6 +28,22 @@ final readonly class DoctrineTeamRepository implements TeamRepositoryInterface
         $this->entityManager->flush();
     }
 
+    public function findById(TeamId $id): ?Team
+    {
+        return $this->entityManager->find(Team::class, $id->value);
+    }
+
+    public function findByExternalId(int $externalId): ?Team
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->select('t')
+            ->from(Team::class, 't')
+            ->where('t.externalId = :externalId')
+            ->setParameter('externalId', $externalId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     /** @return list<Team> */
     public function findAll(): array
     {
@@ -55,16 +55,12 @@ final readonly class DoctrineTeamRepository implements TeamRepositoryInterface
             ->getResult();
     }
 
-    /** @return list<Team> */
-    public function findByCountry(string $country): array
+    public function count(): int
     {
-        return $this->entityManager->createQueryBuilder()
-            ->select('t')
+        return (int) $this->entityManager->createQueryBuilder()
+            ->select('COUNT(t.id)')
             ->from(Team::class, 't')
-            ->where('t.country = :country')
-            ->setParameter('country', $country)
-            ->orderBy('t.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getSingleScalarResult();
     }
 }

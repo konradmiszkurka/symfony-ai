@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block page_title %}Admin{% endblock %} | Betting Admin</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚽</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YcnS/1t9oC6JBZB4XLClpMzomoVo7e8doeT" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #1a1d23;
+            --sidebar-hover: rgba(255,255,255,.08);
+            --sidebar-active: rgba(99,135,255,.25);
+            --sidebar-active-border: #6384ff;
+            --topbar-height: 60px;
+        }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f0f2f5; }
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            z-index: 1030;
+            overflow-y: auto;
+            transition: transform .2s;
+        }
+        .sidebar-brand {
+            padding: 1.25rem 1.25rem .75rem;
+            display: flex; align-items: center; gap: .625rem;
+            text-decoration: none; color: #fff;
+        }
+        .sidebar-brand span { font-size: 1.125rem; font-weight: 600; letter-spacing: -.01em; }
+        .sidebar-nav { padding: .5rem .75rem; list-style: none; margin: 0; }
+        .sidebar-nav .nav-label {
+            padding: .75rem .75rem .375rem;
+            font-size: .675rem; font-weight: 600; letter-spacing: .05em;
+            text-transform: uppercase; color: rgba(255,255,255,.35);
+        }
+        .sidebar-nav .nav-link {
+            display: flex; align-items: center; gap: .625rem;
+            padding: .5rem .75rem; margin-bottom: 2px;
+            border-radius: .5rem; color: rgba(255,255,255,.65);
+            font-size: .875rem; font-weight: 450;
+            text-decoration: none; transition: all .15s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-nav .nav-link i { font-size: 1.1rem; width: 1.25rem; text-align: center; }
+        .sidebar-nav .nav-link:hover { color: #fff; background: var(--sidebar-hover); }
+        .sidebar-nav .nav-link.active {
+            color: #fff; background: var(--sidebar-active);
+            border-left-color: var(--sidebar-active-border);
+        }
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+        .topbar {
+            height: var(--topbar-height);
+            background: #fff;
+            border-bottom: 1px solid #e2e5e9;
+            display: flex; align-items: center;
+            padding: 0 1.5rem;
+            position: sticky; top: 0; z-index: 1020;
+        }
+        .topbar-title { font-size: 1rem; font-weight: 600; color: #1a1d23; }
+        .content-area { padding: 1.5rem; }
+
+        /* Stat cards */
+        .stat-card { border: none; border-radius: .75rem; transition: transform .15s, box-shadow .15s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.08); }
+        .stat-icon { width: 48px; height: 48px; border-radius: .625rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+
+        /* Status badges */
+        .badge-status { font-size: .75rem; font-weight: 500; padding: .35em .65em; border-radius: .375rem; }
+        .badge-scheduled { background: #e9ecef; color: #495057; }
+        .badge-in_progress { background: #dbeafe; color: #1d4ed8; }
+        .badge-finished { background: #d1fae5; color: #065f46; }
+        .badge-postponed { background: #fef3c7; color: #92400e; }
+        .badge-cancelled { background: #fee2e2; color: #991b1b; }
+
+        /* Tables */
+        .table-card { border: none; border-radius: .75rem; overflow: hidden; }
+        .table-card .table { margin-bottom: 0; }
+        .table-card .table thead th {
+            background: #f8f9fa; border-bottom: 2px solid #e9ecef;
+            font-size: .75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .04em; color: #6b7280; padding: .75rem 1rem;
+        }
+        .table-card .table tbody td { padding: .75rem 1rem; vertical-align: middle; font-size: .875rem; }
+        .table-card .table tbody tr { transition: background .1s; }
+        .table-card .table tbody tr:hover { background: #f8fafc; }
+
+        /* Score display */
+        .score-display { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        /* Flash alerts */
+        .flash-container .alert { border: none; border-radius: .625rem; font-size: .875rem; }
+    </style>
+</head>
+<body>
+    {# ── Sidebar ── #}
+    <nav class="sidebar">
+        <a class="sidebar-brand" href="{{ path('admin_dashboard') }}">
+            <i class="bi bi-trophy-fill fs-4" style="color: #6384ff;"></i>
+            <span>Betting Admin</span>
+        </a>
+
+        <hr style="border-color: rgba(255,255,255,.1); margin: 0 1rem;">
+
+        <ul class="sidebar-nav">
+            <li class="nav-label">Main</li>
+            <li>
+                <a class="nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}" href="{{ path('admin_dashboard') }}">
+                    <i class="bi bi-grid-1x2-fill"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="nav-label">Data</li>
+            <li>
+                <a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_league_' %}active{% endif %}" href="{{ path('admin_league_index') }}">
+                    <i class="bi bi-collection-fill"></i> Leagues
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_team_' %}active{% endif %}" href="{{ path('admin_team_index') }}">
+                    <i class="bi bi-people-fill"></i> Teams
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_match_' %}active{% endif %}" href="{{ path('admin_match_index') }}">
+                    <i class="bi bi-calendar2-event-fill"></i> Matches
+                </a>
+            </li>
+
+            <li class="nav-label">Tools</li>
+            <li>
+                <a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_import_' %}active{% endif %}" href="{{ path('admin_import_index') }}">
+                    <i class="bi bi-cloud-arrow-down-fill"></i> Import
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    {# ── Main content ── #}
+    <div class="main-wrapper">
+        <header class="topbar">
+            <span class="topbar-title">{% block topbar_title %}Dashboard{% endblock %}</span>
+        </header>
+
+        <div class="content-area">
+            {# Flash messages #}
+            <div class="flash-container">
+                {% for type in ['success', 'warning', 'danger', 'info'] %}
+                    {% for message in app.flashes(type) %}
+                        <div class="alert alert-{{ type }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

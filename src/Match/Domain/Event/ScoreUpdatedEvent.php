@@ -8,20 +8,16 @@ use App\Shared\Domain\DomainEvent;
 
 final readonly class ScoreUpdatedEvent implements DomainEvent
 {
-    public \DateTimeImmutable $occurredOn;
-
     public function __construct(
         public string $matchId,
-        public int $homeGoals,
-        public int $awayGoals,
-        public int $previousHomeGoals,
-        public int $previousAwayGoals,
+        public int $homeScore,
+        public int $awayScore,
+        private \DateTimeImmutable $occurredAt,
     ) {
-        $this->occurredOn = new \DateTimeImmutable();
     }
 
     public function occurredAt(): \DateTimeImmutable
     {
-        return $this->occurredOn;
+        return $this->occurredAt;
     }
 }

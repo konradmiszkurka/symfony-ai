@@ -9,8 +9,8 @@ enum MatchStatus: string
     case Scheduled = 'scheduled';
     case InProgress = 'in_progress';
     case Finished = 'finished';
-    case Cancelled = 'cancelled';
     case Postponed = 'postponed';
+    case Cancelled = 'cancelled';
 
     /** @return list<self> */
     public function allowedTransitions(): array
