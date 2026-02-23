@@ -1,0 +1,218 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}Prediction: {{ prediction.homeTeamName }} vs {{ prediction.awayTeamName }}{% endblock %}
+{% block topbar_title %}Prediction Detail{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">{{ prediction.homeTeamName }} vs {{ prediction.awayTeamName }}</h4>
+            <small class="text-muted">
+                <span class="badge bg-primary bg-opacity-10 text-primary me-2">{{ prediction.leagueCode }}</span>
+                {{ prediction.matchStartDate|date('d M Y, H:i') }}
+                &mdash; Calculated {{ prediction.calculatedAt|date('d M Y, H:i') }}
+            </small>
+        </div>
+        <a href="{{ path('admin_prediction_index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+
+    <div class="row g-4">
+
+        {# 1X2 Probabilities #}
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100" style="border-radius:.75rem;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">1X2 Probabilities</h6>
+
+                    {% set maxProb = max(prediction.homeWinProbability, prediction.drawProbability, prediction.awayWinProbability) %}
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-medium">{{ prediction.homeTeamName }} wins (1)</span>
+                            <span class="fw-bold {% if prediction.homeWinProbability == maxProb %}text-success{% endif %}">
+                                {{ prediction.homeWinProbability|number_format(1) }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height:10px;">
+                            <div class="progress-bar {% if prediction.homeWinProbability == maxProb %}bg-success{% else %}bg-primary{% endif %}"
+                                 style="width: {{ prediction.homeWinProbability }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-medium">Draw (X)</span>
+                            <span class="fw-bold {% if prediction.drawProbability == maxProb %}text-success{% endif %}">
+                                {{ prediction.drawProbability|number_format(1) }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height:10px;">
+                            <div class="progress-bar {% if prediction.drawProbability == maxProb %}bg-success{% else %}bg-secondary{% endif %}"
+                                 style="width: {{ prediction.drawProbability }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-medium">{{ prediction.awayTeamName }} wins (2)</span>
+                            <span class="fw-bold {% if prediction.awayWinProbability == maxProb %}text-success{% endif %}">
+                                {{ prediction.awayWinProbability|number_format(1) }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height:10px;">
+                            <div class="progress-bar {% if prediction.awayWinProbability == maxProb %}bg-success{% else %}bg-danger{% endif %}"
+                                 style="width: {{ prediction.awayWinProbability }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Odds #}
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100" style="border-radius:.75rem;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Fair Odds</h6>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted mb-1" style="font-size:.75rem;">Home (1)</div>
+                                <div class="fs-4 fw-bold text-primary">{{ prediction.homeOdds|number_format(2) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted mb-1" style="font-size:.75rem;">Draw (X)</div>
+                                <div class="fs-4 fw-bold text-secondary">{{ prediction.drawOdds|number_format(2) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted mb-1" style="font-size:.75rem;">Away (2)</div>
+                                <div class="fs-4 fw-bold text-danger">{{ prediction.awayOdds|number_format(2) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Expected Goals #}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius:.75rem;">
+                <div class="card-body text-center">
+                    <h6 class="fw-bold mb-3">Expected Goals (xG)</h6>
+                    <div class="d-flex justify-content-around align-items-center">
+                        <div>
+                            <div class="text-muted mb-1" style="font-size:.75rem;">{{ prediction.homeTeamName }}</div>
+                            <div class="fs-3 fw-bold text-primary">{{ prediction.homeExpectedGoals|number_format(2) }}</div>
+                        </div>
+                        <div class="text-muted fs-5">vs</div>
+                        <div>
+                            <div class="text-muted mb-1" style="font-size:.75rem;">{{ prediction.awayTeamName }}</div>
+                            <div class="fs-3 fw-bold text-danger">{{ prediction.awayExpectedGoals|number_format(2) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Most Likely Score #}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius:.75rem;">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h6 class="fw-bold mb-2">Most Likely Score</h6>
+                    <div class="display-4 fw-bold text-dark">{{ prediction.mostLikelyScore }}</div>
+                    {% if prediction.topScores|length > 0 %}
+                        <small class="text-muted mt-1">
+                            ({{ prediction.topScores[0].probability|number_format(1) }}% probability)
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Top 10 Scores #}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius:.75rem;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Top 10 Scores</h6>
+                    <ul class="list-unstyled mb-0">
+                        {% for score in prediction.topScores %}
+                            <li class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-secondary" style="min-width:42px;">{{ score.homeGoals }}-{{ score.awayGoals }}</span>
+                                <div class="progress flex-grow-1 mx-2" style="height:6px;">
+                                    <div class="progress-bar bg-info"
+                                         style="width: {{ [score.probability * 4, 100]|min }}%"></div>
+                                </div>
+                                <span class="text-muted" style="font-size:.75rem;min-width:44px;text-align:right;">
+                                    {{ score.probability|number_format(1) }}%
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {# Score Matrix Heatmap #}
+        <div class="col-12">
+            <div class="card shadow-sm border-0" style="border-radius:.75rem;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-1">Score Matrix Heatmap</h6>
+                    <p class="text-muted mb-3" style="font-size:.8125rem;">
+                        Rows = {{ prediction.homeTeamName }} goals &nbsp;|&nbsp; Columns = {{ prediction.awayTeamName }} goals
+                    </p>
+
+                    {# Find max probability for relative color scaling #}
+                    {% set maxCellProb = 0.001 %}
+                    {% for i in 0..5 %}
+                        {% for j in 0..5 %}
+                            {% set cellKey = i ~ ':' ~ j %}
+                            {% if prediction.scoreMatrixData[cellKey] is defined and prediction.scoreMatrixData[cellKey] > maxCellProb %}
+                                {% set maxCellProb = prediction.scoreMatrixData[cellKey] %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center mb-0" style="font-size:.8125rem;max-width:520px;">
+                            <thead>
+                                <tr>
+                                    <th class="table-light" style="width:60px;">H \ A</th>
+                                    {% for j in 0..5 %}
+                                        <th class="table-light">{{ j }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in 0..5 %}
+                                    <tr>
+                                        <th class="table-light">{{ i }}</th>
+                                        {% for j in 0..5 %}
+                                            {% set cellKey = i ~ ':' ~ j %}
+                                            {% set cellProb = prediction.scoreMatrixData[cellKey] is defined ? prediction.scoreMatrixData[cellKey] : 0 %}
+                                            {% set intensity = maxCellProb > 0 ? (cellProb / maxCellProb) : 0 %}
+                                            {% set alpha = (intensity * 0.75)|round(2) %}
+                                            <td style="background: rgba(99,132,255,{{ alpha }});font-weight: {{ intensity > 0.7 ? '700' : '400' }};"
+                                                title="{{ i }}-{{ j }}: {{ (cellProb * 100)|number_format(1) }}%">
+                                                {{ (cellProb * 100)|number_format(1) }}%
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mt-2">
+                        <div style="width:60px;height:12px;background:linear-gradient(to right,rgba(99,132,255,0.05),rgba(99,132,255,0.75));border-radius:3px;"></div>
+                        <small class="text-muted">Low probability &rarr; High probability</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

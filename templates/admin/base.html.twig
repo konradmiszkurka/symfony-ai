@@ -134,6 +134,13 @@
                 </a>
             </li>
 
+            <li class="nav-label">Betting</li>
+            <li>
+                <a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_prediction_' %}active{% endif %}" href="{{ path('admin_prediction_index') }}">
+                    <i class="bi bi-graph-up-arrow"></i> Predictions
+                </a>
+            </li>
+
             <li class="nav-label">Tools</li>
             <li>
                 <a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_import_' %}active{% endif %}" href="{{ path('admin_import_index') }}">

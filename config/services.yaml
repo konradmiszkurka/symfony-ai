@@ -24,6 +24,7 @@ services:
     App\Match\Domain\Repository\TeamRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineTeamRepository'
     App\Match\Domain\Repository\MatchRepositoryInterface: '@App\Match\Infrastructure\Persistence\DoctrineMatchRepository'
     App\User\Domain\Repository\UserRepositoryInterface: '@App\User\Infrastructure\Persistence\DoctrineUserRepository'
+    App\Betting\Domain\Repository\PredictionRepositoryInterface: '@App\Betting\Infrastructure\Persistence\DoctrinePredictionRepository'
 
     # API Client wiring
     App\Match\Infrastructure\Api\FootballDataApiClient:
