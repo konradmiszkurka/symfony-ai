@@ -12,6 +12,15 @@ final class TeamIdType extends StringType
 {
     public const string NAME = 'team_id';
 
+    public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?TeamId
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return TeamId::fromString((string) $value);
+    }
+
     public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
         if ($value === null) {

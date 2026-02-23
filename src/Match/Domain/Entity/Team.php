@@ -15,7 +15,7 @@ final class Team extends AggregateRoot
 {
     #[ORM\Id]
     #[ORM\Column(type: 'team_id')]
-    private string $id;
+    private TeamId $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $name;
@@ -45,7 +45,7 @@ final class Team extends AggregateRoot
         ?string $logoUrl = null,
     ): self {
         $team = new self();
-        $team->id = $id->value;
+        $team->id = $id;
         $team->name = $name->value;
         $team->shortName = $shortName;
         $team->country = $country;
@@ -75,7 +75,7 @@ final class Team extends AggregateRoot
 
     public function getId(): TeamId
     {
-        return TeamId::fromString($this->id);
+        return $this->id;
     }
 
     public function getName(): TeamName

@@ -25,7 +25,7 @@ final class FootballMatch extends AggregateRoot
 {
     #[ORM\Id]
     #[ORM\Column(type: 'match_id')]
-    private string $id;
+    private MatchId $id;
 
     #[ORM\ManyToOne(targetEntity: Team::class)]
     #[ORM\JoinColumn(name: 'home_team_id', referencedColumnName: 'id', nullable: false)]
@@ -71,7 +71,7 @@ final class FootballMatch extends AggregateRoot
         }
 
         $match = new self();
-        $match->id = $id->value;
+        $match->id = $id;
         $match->homeTeam = $homeTeam;
         $match->awayTeam = $awayTeam;
         $match->league = $league;
@@ -81,7 +81,7 @@ final class FootballMatch extends AggregateRoot
         $match->updatedAt = new \DateTimeImmutable();
 
         $match->recordEvent(new MatchCreatedEvent(
-            matchId: $id->value,
+            matchId: $match->id->value,
             homeTeamId: $homeTeam->getId()->value,
             awayTeamId: $awayTeam->getId()->value,
             leagueId: $league->getId()->value,
@@ -99,7 +99,7 @@ final class FootballMatch extends AggregateRoot
         $this->updatedAt = new \DateTimeImmutable();
 
         $this->recordEvent(new MatchStartedEvent(
-            matchId: $this->id,
+            matchId: $this->id->value,
             startedAt: $this->updatedAt->format(\DateTimeInterface::ATOM),
         ));
     }
@@ -107,7 +107,7 @@ final class FootballMatch extends AggregateRoot
     public function updateScore(Score $score): void
     {
         if ($this->status !== MatchStatus::InProgress) {
-            throw InvalidScoreException::matchNotInProgress(MatchId::fromString($this->id));
+            throw InvalidScoreException::matchNotInProgress($this->id);
         }
 
         $previousHomeGoals = $this->homeGoals;
@@ -118,7 +118,7 @@ final class FootballMatch extends AggregateRoot
         $this->updatedAt = new \DateTimeImmutable();
 
         $this->recordEvent(new ScoreUpdatedEvent(
-            matchId: $this->id,
+            matchId: $this->id->value,
             homeGoals: $score->homeGoals,
             awayGoals: $score->awayGoals,
             previousHomeGoals: $previousHomeGoals ?? 0,
@@ -134,7 +134,7 @@ final class FootballMatch extends AggregateRoot
         $this->updatedAt = new \DateTimeImmutable();
 
         $this->recordEvent(new MatchFinishedEvent(
-            matchId: $this->id,
+            matchId: $this->id->value,
             homeGoals: $score->homeGoals,
             awayGoals: $score->awayGoals,
         ));
@@ -146,7 +146,7 @@ final class FootballMatch extends AggregateRoot
         $this->updatedAt = new \DateTimeImmutable();
 
         $this->recordEvent(new MatchCancelledEvent(
-            matchId: $this->id,
+            matchId: $this->id->value,
             cancelledAt: $this->updatedAt->format(\DateTimeInterface::ATOM),
         ));
     }
@@ -175,7 +175,7 @@ final class FootballMatch extends AggregateRoot
 
     public function getId(): MatchId
     {
-        return MatchId::fromString($this->id);
+        return $this->id;
     }
 
     public function getHomeTeam(): Team

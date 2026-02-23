@@ -12,6 +12,15 @@ final class MatchIdType extends StringType
 {
     public const string NAME = 'match_id';
 
+    public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?MatchId
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return MatchId::fromString((string) $value);
+    }
+
     public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
         if ($value === null) {

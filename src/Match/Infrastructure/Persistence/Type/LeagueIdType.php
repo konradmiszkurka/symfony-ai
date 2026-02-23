@@ -12,6 +12,15 @@ final class LeagueIdType extends StringType
 {
     public const string NAME = 'league_id';
 
+    public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?LeagueId
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return LeagueId::fromString((string) $value);
+    }
+
     public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
         if ($value === null) {

@@ -15,7 +15,7 @@ final class League extends AggregateRoot
 {
     #[ORM\Id]
     #[ORM\Column(type: 'league_id')]
-    private string $id;
+    private LeagueId $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $name;
@@ -45,7 +45,7 @@ final class League extends AggregateRoot
         ?string $logoUrl = null,
     ): self {
         $league = new self();
-        $league->id = $id->value;
+        $league->id = $id;
         $league->name = $name->value;
         $league->country = $country;
         $league->season = $season;
@@ -75,7 +75,7 @@ final class League extends AggregateRoot
 
     public function getId(): LeagueId
     {
-        return LeagueId::fromString($this->id);
+        return $this->id;
     }
 
     public function getName(): LeagueName
